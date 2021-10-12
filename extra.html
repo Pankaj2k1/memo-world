@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>Memo-World</title>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+    integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <link rel="stylesheet" href="public/css/styles.css">
+</head>
+
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">Memo-World</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+      aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+      <form class="form-inline ml-3" action="/memories/search"  method="POST">
+        <input class="form-control mr-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+      </form>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/memories/my-memories">My-Memories</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/logout">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- jumbotron -->
+
+
+  <div class="jumbotron text-center">
+    <div class="container">
+
+      <h1 class="display-3 heading1">Welcome to Memo-World</h1>
+
+      <div class="container mx-auto mt-4">
+        <div class="row">
+
+
+
+          <div class="col-md-4">
+            <div class="card memocard zoom" style="width: 18rem;">
+              <h6 class="card-subtitle mb-2 text-muted" style="margin-top:10px">Creator</h6>
+              <img src="https://i.imgur.com/ZTkt4I5.jpg" class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">Title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the
+                  bulk of the card's content.</p>
+
+              </div>
+            </div>
+          </div>
+
+
+
+
+
+          <div class="col-md-4">
+            <div class="card memocard zoom" style="width: 18rem;">
+              <h6 class="card-subtitle mb-2 text-muted" style="margin-top:10px">Creator</h6>
+              <img src="https://i.imgur.com/ZTkt4I5.jpg" class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">Title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the
+                  bulk of the card's content.</p>
+
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card memocard zoom" style="width: 18rem;">
+              <h6 class="card-subtitle mb-2 text-muted" style="margin-top:10px">Creator</h6>
+              <img src="https://i.imgur.com/ZTkt4I5.jpg" class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">Title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the
+                  bulk of the card's content.</p>
+
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card memocard zoom" style="width: 18rem;">
+              <h6 class="card-subtitle mb-2 text-muted" style="margin-top:10px">Creator</h6>
+              <img src="https://i.imgur.com/ZTkt4I5.jpg" class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">Title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the
+                  bulk of the card's content.</p>
+
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card memocard zoom" style="width: 18rem;">
+              <h6 class="card-subtitle mb-2 text-muted" style="margin-top:10px">Creator</h6>
+              <img src="https://i.imgur.com/ZTkt4I5.jpg" class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">Title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the
+                  bulk of the card's content.</p>
+
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card memocard zoom" style="width: 18rem;">
+              <h6 class="card-subtitle mb-2 text-muted" style="margin-top:10px">Creator</h6>
+              <img src="https://i.imgur.com/ZTkt4I5.jpg" class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">Title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the
+                  bulk of the card's content.</p>
+
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card memocard zoom" style="width: 18rem;">
+              <h6 class="card-subtitle mb-2 text-muted" style="margin-top:10px">Creator</h6>
+              <img src="https://i.imgur.com/ZTkt4I5.jpg" class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">Title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the
+                  bulk of the card's content.</p>
+
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card memocard zoom" style="width: 18rem;">
+              <h6 class="card-subtitle mb-2 text-muted" style="margin-top:10px">Creator</h6>
+              <img src="https://i.imgur.com/ZTkt4I5.jpg" class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">Title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the
+                  bulk of the card's content.</p>
+
+              </div>
+            </div>
+          </div>
+
+
+
+        </div>
+      </div>
+      <hr>
+
+      <a class="btn btn-light btn-lg" href="/logout" role="button">Log Out</a>
+      <a class="btn btn-dark btn-lg" href="/submit" role="button">Submit Your Memory</a>
+    </div>
+  </div>
+
+
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+
+</body>
+
+</html>
+<!-- app.get('/document/:id', function(req, res) {
+  Document.findOne({ _id : req.params.id }, function(error, document) {
+    if (error || !document) {
+      res.render('error', {});
+    } else {
+      res.render('document', { document : document });
+    }
+  });
+}); -->

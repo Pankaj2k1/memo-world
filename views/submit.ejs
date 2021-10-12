@@ -1,0 +1,39 @@
+<%- include('partials/header') %>
+
+  <div class="container">
+    <div class="jumbotron memo-form">
+      <h3 class="display-3">Create A Memory </h3>
+      <p class="secret-text col-sm-8">Don't keep your Experiences and Memories to yourself, share them anonymously!</p>
+
+      <div class="row">
+        <div class="col-sm-8">
+          <!-- <div class="card">
+            <div class="card-body"> -->
+              <form action="/submitmemo" enctype="multipart/form-data" method="POST">
+
+                <div class="form-group">
+                  <label for="creator"> Creator </label>
+                  <input type="text" class="form-control" name="creator">
+                </div>
+                <div class="form-group">
+                  <label for="title"> Title </label>
+                  <input type="text" class="form-control" name="title">
+                </div>
+                <div class="form-group">
+                  <label for="memory"> Experience </label>
+                  <textarea type="text" class="form-control" name="memory" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                  <input type="file" accept="image/*" name="memo-image" capture >
+                </div>
+                <button type="submit" class="btn btn-dark">Submit</button>
+              </form>
+            <!-- </div>
+          </div> -->
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+  <%- include('partials/footer') %>
