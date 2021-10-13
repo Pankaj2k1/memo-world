@@ -13,10 +13,10 @@
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
       <ul class="navbar-nav ml-auto">
         <li class="nav-item">
-          <a class="nav-link" href="/memories/my-memories">My-Memories</a>
+          <a class="nav-link btn btn-outline-secondary" href="/memories/my-memories">My-Memories</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/logout">Logout</a>
+          <a class="nav-link" href="/logout">  <i class="fas fa-sign-out-alt"></i>Logout  </a>
         </li>
       </ul>
     </div>
@@ -34,18 +34,29 @@
         <div class="row">
 
 
-          <%userWithMemories.forEach(function(memo){  %>
+          <%for(let memo of userWithMemories){  %>
           <div class="col-md-4">
             <div class="card memocard zoom" style="width: 18rem;">
-                <h6 class="card-subtitle mb-2 text-muted" style="margin-top:10px"><%=memo.creator%></h6>
-              <img src="https://i.imgur.com/ZTkt4I5.jpg" class="card-img-top" alt="...">
+                <h6 class="card-subtitle mb-2 text-muted" style="margin-top:10px"><i class="fas fa-user"></i><%=memo.creator%></h6>
+              <% if(memo.imagePath!==undefined){%>
+                <img src="<%=memo.imagePath %>"  class="card-img-top" alt="...">
+                <% }else{%>
+                <img src="/images/background-Img3.jpg" class="card-img-top" alt="image not found">
+                <% }%>
               <div class="card-body">
                 <h5 class="card-title"><%=memo.title%></h5>
                 <p class="card-text"><%=memo.message%></p>
               </div>
+
+              <%  if(headingMemo=="My Memories")  {%>
+                <form action="/delete" method="POST">
+                    <button class="btn btn-sm btn-dark">Delete</button>
+                </form>
+                <% } %>
+                
             </div>
           </div>
-          <% })%>
+          <% }%>
 
         </div>
       </div>
