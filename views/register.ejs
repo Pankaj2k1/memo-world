@@ -1,6 +1,18 @@
 <%- include('partials/header') %>
+<%if( error && error.length ){%>
+  <div class="container">
+    <div class="alert alert-danger alert-dismissible fade show mt-5" role="alert"  style="width:65%;">
+      <%=error%>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  </div>
+<%}%>
+
+
 <div class="container mt-5">
-  <h1>Register</h1>
+  <h1 style="color:rgb(201, 184, 161); text-shadow: 1px 1px #FF0000;">Register</h1>
 
   <div class="row">
     <div class="col-sm-8">
@@ -22,8 +34,8 @@
 
         </div>
       </div>
-      <div style=" text-align: center">
-        <p style="display: inline-block">Already a User?...</p>
+      <div style=" text-align: center; background-color: black;">
+        <p style="display: inline-block;color: rgb(201, 184, 161);">Already a User?...</p>
         <a href="/login" role="button">Login</a>
       </div>
 

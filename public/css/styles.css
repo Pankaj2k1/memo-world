@@ -56,6 +56,9 @@ background-color: rgba(1, 1, 20, 0.521);
   width: 100%; 
   z-index:1
 }
+.navbar-brand:hover{
+opacity:60%
+}
 
 
 /* Memory form cards*/
@@ -72,4 +75,10 @@ background-color: rgba(1, 1, 20, 0.521);
 
 .zoom:hover {
   transform: scale(1.1); 
+}
+.card-img-top{
+  height:180px;
+  border-radius: 5px;
+  margin-top: 10px;
+  object-fit: fill;
 }

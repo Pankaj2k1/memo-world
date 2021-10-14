@@ -9,6 +9,7 @@ const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const session = require("express-session");
 const multer = require('multer');
+const flash = require('connect-flash');
 const User = require('./models/user');
 const Memory = require('./models/memory');
 
@@ -18,12 +19,10 @@ const DB = "mongodb+srv://admin-pankaj:Pg01062001@cluster0.ktsqd.mongodb.net/use
 
 //database= username=admin-pankaj
 //                  password=Pg01062001
-// display "wrong id or password try again" when wrong data  //USE FLASH
-// display invalid username or password when invalid data      //USE FLASH
+// display "wrong id or password try again" when wrong data 
+// display invalid username or password when invalid data      
 // IMPROVE css+looks(all pages)
-//use joi to validate memo-form data  (ERRORRRR)
-//put delete button on (my memories) page cards
-//MULTER to load images(Add a default pic)
+//use joi to validate memo-form data 
 //SEARCH bar
 //Memory scehma not taking duplicate entries
 
@@ -36,20 +35,12 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
+app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
+
 const { storage } = require('./utils/cloudinary')
 const upload = multer({ storage });
-
-// const storage = multer.diskStorage({
-//     destination: function (req, file, cb) {
-//         cb(null, path.join(__dirname, 'public/images/memory-images'));
-//     },
-//     filename: function (req, file, cb) {
-//         cb(null, Date.now() + "-" + file.originalname);
-//     }
-// });
-// const upload = multer({ storage: storage })
 
 mongoose.connect(DB, {
     useNewUrlParser: true,
@@ -69,41 +60,73 @@ app.get("/", function (req, res) {
 });
 
 app.get("/login", function (req, res) {
-    res.render("login", { message: "Invalid Username or Password ! Try Again !" });
-    //FLASH
+    res.render("login", { error: req.flash('error') });
 });
 
 app.get("/register", function (req, res) {
-    res.render("register");
+    res.render("register", { error: req.flash('error') });
 });
 
 app.post("/register", function (req, res) {
+    let err = '';
+    const username = req.body.username;
+    const password = req.body.password;
 
-    let JoiSchema = joi.object({
-        username: joi.string().min(5).max(30).required(),
-        password: joi.string().min(5).max(15).required(),
-    }).options({ abortEarly: false });
+    if (!username || !password) {
+        err = 'All the fields must be filled to proceed'
+    } else if (password.length < 5) {
+        err = 'Sorry the password must be at least 5 characters long'
+    } else if (username.length < 3) {
+        err = 'Sorry the username must be at least 3 characters long'
+    } else {
 
-    let result = JoiSchema.validate(req.body);
-    if (result.error) {
-        res.redirect("/register");
-        console.log(result.error.details[0].message);
-        //FLASH
-    }
-    else {
-        User.register({ username: result.value.username }, result.value.password, function (err, user) {
-            if (err) {
-                console.log(err);
-                res.redirect("/register");
-            }
-            else {
-                passport.authenticate("local")(req, res, function () {
-                    res.redirect("/memories");
+        User.findOne({ username: username }).then(user => {
+            if (user) {
+                err = 'Username already Used !'
+            } else {
+                User.register({ username:username },password, function (e, user) {
+                    if (e) {
+                        console.log(e);
+                        res.redirect("/register");
+                    }
+                    else {
+                        passport.authenticate("local")(req, res, function () {
+                            res.redirect("/memories");
+                        });
+                    }
                 });
             }
         });
     }
+
+    if(err!=''){
+        req.flash('error',err);
+        res.redirect('/register');
+    }
 });
+// let JoiSchema = joi.object({
+//     username: joi.string().min(5).max(30).required(),
+//     password: joi.string().min(5).max(15).required(),
+// }).options({ abortEarly: false });
+
+// let result = JoiSchema.validate(req.body);
+// if (result.error) {
+//     console.log(result.error.message);
+//     res.redirect("/register");
+// }
+// else {
+// User.register({ username: result.value.username }, result.value.password, function (err, user) {
+//     if (err) {
+//         console.log(err);
+//         res.redirect("/register");
+//     }
+//     else {
+//         passport.authenticate("local")(req, res, function () {
+//             res.redirect("/memories");
+//         });
+//     }
+// });
+// }
 
 app.post("/login", function (req, res) {
     const user = new User({
@@ -112,19 +135,8 @@ app.post("/login", function (req, res) {
     });
     passport.authenticate("local", { failureRedirect: '/login', failureFlash: true })(req, res, function () {
         res.redirect("/memories");
-        //FLASH error when fail
     });
 });
-
-//     req.login(user, function (err) {
-//         if (err) {
-//             console.log(err);
-//             res.redirect("/login");
-//             //FLASH
-//         } else {
-//             res.redirect("/memories");
-//         }
-//     });
 
 app.get("/memories", function (req, res) {
 
@@ -140,6 +152,7 @@ app.get("/memories", function (req, res) {
         })
     }
     else {
+        req.flash('error', 'You are not Logged-In !')
         res.redirect("/login");
     }
 });
@@ -149,6 +162,14 @@ app.get('/logout', function (req, res) {
     req.logout();
     res.redirect('/');
 });
+const checkAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) {
+        return next();
+    } else {
+        req.flash('error', 'You are not Logged-in!');
+        res.redirect('/login');
+    }
+}
 
 app.get("/submit", function (req, res) {
     res.render("submit");
@@ -166,7 +187,7 @@ app.post("/submitmemo", upload.single('memo-image'), function (req, res) {
     // if (result.error) {
     //     res.redirect("/submit");
     //     console.log(result.error.details[0].message);
-    //     //FLASH
+    //     
     // }
     // else {
     //   
@@ -187,10 +208,11 @@ app.post("/submitmemo", upload.single('memo-image'), function (req, res) {
     const newMemo = new Memory({
         creator: req.body.creator,
         title: req.body.title,
-        message: req.body.memory,
-        imagePath: req.file.path,
+        message: req.body.memory
     });
-    console.log(newMemo);
+    if (req.file) {
+        newMemo.imagePath = req.file.path;
+    }
     newMemo.save(function (err) {
         if (err) {
             console.log(err);
@@ -201,6 +223,7 @@ app.post("/submitmemo", upload.single('memo-image'), function (req, res) {
                     res.redirect("/memories");
                 });
             });
+            console.log(newMemo);
         }
     });
 });
@@ -213,28 +236,27 @@ let fetchMemories = async (ids) => {
             let foundMemory = await Memory.find({ "_id": userID });
             arr.push(foundMemory[0]);
         }
+        console.log("Array=" + arr);
         return arr
     }
     catch (e) {
         console.log(e)
     }
 }
-
-app.get("/memories/my-memories", async function (req, res) {
-
+app.get("/memories/my-memories", checkAuthenticated, async function (req, res) {
     let headingText = "";
     let userMemories = [];
     try {
         const foundUser = await User.findById(req.user.id);
         const memoryIds = foundUser.userMemory;
+        console.log("memoryIds");
+        console.log(memoryIds);
 
         if (memoryIds.length == 0) {
             headingText = "No Memories Saved";
-            //display no memory found, give create option 
         } else {
             headingText = "My Memories";
             userMemories = await fetchMemories(memoryIds);
-
         }
         res.render("memories", { userWithMemories: userMemories, headingMemo: headingText });
     }
@@ -249,29 +271,49 @@ app.get("/memories/my-memories", async function (req, res) {
 //     let headingText = "";
 
 //     User.findById(req.user.id, function (err, foundUser) {
-//         if (err) {
-//             console.log(err);
-//         } else {
+//        
 //             const memoryIds = foundUser.userMemory;
-//             console.log("user memory IDS=" + memoryIds);
 //             if (memoryIds.length == 0) {
 //                 headingText = "No Memories Saved :(";
 //                 //display no memory found, give create option 
 //             } else {
 //                 headingText = "My Memories";
-//                 console.log(headingText);
 //                 memoryIds.forEach((memoId) => {
 //                     Memory.findById(memoId, function (err, result) {                  //loop
 //                         userMemories.push(result);
-//                         console.log("UserMemories in loop=" + userMemories);
 //                     });
 //                 });
 //             }
-//         }
-//         console.log("UserMemories=" + userMemories);
+//         
 //     });
 //     res.render("memories", { userWithMemories: userMemories, headingMemo: headingText });
 // });
+
+
+app.post("/delete", async function (req, res) {
+    try {
+        const deleteMemoId = req.body.deleteMemo;
+        console.log("deleteMemoId");
+        console.log(deleteMemoId);
+        const UserDeleteMemory = await Memory.findByIdAndDelete(deleteMemoId);
+        console.log("UserDeleteMemory=");
+        console.log(UserDeleteMemory);
+
+        User.findById(req.user.id, function (err, foundUser) {
+            let id = foundUser.userMemory.indexOf(deleteMemoId);
+            console.log("id=" + id);
+            const idDeleted = foundUser.userMemory.splice(id, 1);
+            console.log("id Deleted=" + idDeleted);
+            foundUser.save();
+            res.redirect("/memories/my-memories");
+        });
+
+    }
+    catch (e) {
+        console.log(e);
+    }
+});
+
 
 app.listen(3000, function () {
     console.log("Server started on port 3000");
