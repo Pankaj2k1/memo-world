@@ -15,17 +15,6 @@ const Memory = require('./models/memory');
 
 const app = express();
 
-const DB = "mongodb+srv://admin-pankaj:Pg01062001@cluster0.ktsqd.mongodb.net/userDB";
-
-//database= username=admin-pankaj
-//                  password=Pg01062001
-// display "wrong id or password try again" when wrong data 
-// display invalid username or password when invalid data      
-// IMPROVE css+looks(all pages)
-//use joi to validate memo-form data 
-//SEARCH bar
-//Memory scehma not taking duplicate entries
-
 app.use(express.static(__dirname + '/public'));
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -42,15 +31,14 @@ app.use(passport.session());
 const { storage } = require('./utils/cloudinary')
 const upload = multer({ storage });
 
+const DB=process.env.DB_HOST;
+
 mongoose.connect(DB, {
     useNewUrlParser: true,
-    // useCreateIndex: true,
-    // useFindAndModify: false,
     useUnifiedTopology: true
 }).then(() => console.log('Connection to DB established'));
 
 passport.use(User.createStrategy());
-
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
@@ -67,11 +55,10 @@ app.get("/register", function (req, res) {
     res.render("register", { error: req.flash('error') });
 });
 
-app.post("/register", function (req, res) {
+app.post("/register", async function (req, res) {
     let err = '';
     const username = req.body.username;
     const password = req.body.password;
-
     if (!username || !password) {
         err = 'All the fields must be filled to proceed'
     } else if (password.length < 5) {
@@ -79,31 +66,30 @@ app.post("/register", function (req, res) {
     } else if (username.length < 3) {
         err = 'Sorry the username must be at least 3 characters long'
     } else {
-
-        User.findOne({ username: username }).then(user => {
-            if (user) {
-                err = 'Username already Used !'
-            } else {
-                User.register({ username:username },password, function (e, user) {
-                    if (e) {
-                        console.log(e);
-                        res.redirect("/register");
-                    }
-                    else {
-                        passport.authenticate("local")(req, res, function () {
-                            res.redirect("/memories");
-                        });
-                    }
-                });
-            }
-        });
+        const alreadyUser = await User.findOne({ username: username });
+        if (alreadyUser) {
+            err = 'Username already Used !'
+        } else {
+            const registerUser = await User.register({ username: username }, password);
+            req.login(registerUser, errr => {
+                if (errr) {
+                    err = "Sorry,Something went wrong ! Please Try again !";
+                    req.flash('error',errr);
+                    res.redirect("/register");
+                } else {
+                    passport.authenticate("local")(req, res, function () {
+                        res.redirect("/memories");
+                    });
+                }
+            });
+        }
     }
-
-    if(err!=''){
-        req.flash('error',err);
+    if (err != '') {
+        req.flash('error', err);
         res.redirect('/register');
     }
 });
+
 // let JoiSchema = joi.object({
 //     username: joi.string().min(5).max(30).required(),
 //     password: joi.string().min(5).max(15).required(),
@@ -143,7 +129,8 @@ app.get("/memories", function (req, res) {
     if (req.isAuthenticated()) {
         Memory.find({ "message": { $ne: null } }, function (err, foundMemos) {
             if (err) {
-                console.log(err);
+                req.flash('error', err.message + " Try Again !");
+                res.redirect("/login");
             } else {
                 if (foundMemos) {
                     res.render("memories", { userWithMemories: foundMemos, headingMemo: "Welcome to Memo-World" });
@@ -157,11 +144,11 @@ app.get("/memories", function (req, res) {
     }
 });
 
-
 app.get('/logout', function (req, res) {
     req.logout();
     res.redirect('/');
 });
+
 const checkAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) {
         return next();
@@ -171,76 +158,82 @@ const checkAuthenticated = (req, res, next) => {
     }
 }
 
-app.get("/submit", function (req, res) {
-    res.render("submit");
+app.get("/submit", checkAuthenticated, function (req, res) {
+    res.render("submit", { error: req.flash('error') });
 })
 
-app.post("/submitmemo", upload.single('memo-image'), function (req, res) {
-
-    // let JoiSchema = joi.object({
-    //     creator: joi.string().min(3).max(20).required(),
-    //     title: joi.string().min(4).max(40).required(),
-    //     message: joi.string().min(10).max(100).required()
-    // });
-
-    // let result = JoiSchema.validate(req.body);
-    // if (result.error) {
-    //     res.redirect("/submit");
-    //     console.log(result.error.details[0].message);
-    //     
-    // }
-    // else {
-    //   
-    //     result.save(function (err) {
-    //         if (err) {
-    //             res.send(err);
-    //         } else {
-    //             User.findById(req.user.id, function (err, foundUser) {
-    //                 foundUser.userMemory.push(req.body);
-    //                 foundUser.save(function () {
-    //                     res.redirect("/memories");
-    //                 });
-    //             });
-    //         }
-    //     });
-    // }
-
-    const newMemo = new Memory({
+app.post("/submitmemo", upload.single('memo-image'),checkAuthenticated, function (req, res) {
+    const userMemo = {
         creator: req.body.creator,
         title: req.body.title,
         message: req.body.memory
+    };
+    let JoiSchema = joi.object({
+        creator: joi.string().min(3).max(20).required(),
+        title: joi.string().min(4).max(40).required(),
+        message: joi.string().min(10).max(100).required()
     });
-    if (req.file) {
-        newMemo.imagePath = req.file.path;
+
+    let result = JoiSchema.validate(userMemo);
+    if (result.error) {
+        req.flash('error', result.error.details[0].message)
+        res.redirect("/submit");
     }
-    newMemo.save(function (err) {
-        if (err) {
-            console.log(err);
-        } else {
-            User.findById(req.user.id, function (err, foundUser) {
-                foundUser.userMemory.push(newMemo);
-                foundUser.save(function () {
-                    res.redirect("/memories");
-                });
-            });
-            console.log(newMemo);
+    else {
+        if (req.file) {
+            userMemo.imagePath = req.file.path;
         }
-    });
+        const newMemo = new Memory(userMemo);
+        newMemo.save(function (err) {
+            if (err) {
+                res.send(err);
+            } else {
+                User.findById(req.user.id, function (err, foundUser) {
+                    foundUser.userMemory.push(newMemo);
+                    foundUser.save(function () {
+                        res.redirect("/memories");
+                    });
+                });
+            }
+        });
+    }
 });
+//     const newMemo = new Memory({
+//         creator: req.body.creator,
+//         title: req.body.title,
+//         message: req.body.memory
+//     });
+//     if (req.file) {
+//         newMemo.imagePath = req.file.path;
+//     }
+//     newMemo.save(function(err){
+//         if (err) {
+//             console.log(err);
+//             res.redirect("/submit");
+//         } else {
+//             User.findById(req.user.id, function (err, foundUser) {
+//                 foundUser.userMemory.push(newMemo);
+//                 foundUser.save(function () {
+//                     res.redirect("/memories");
+//                 });
+//             });
+//             console.log(newMemo);
+//         }
+//     });
+// });
 
-
-let fetchMemories = async (ids) => {
+async function fetchMemories(ids) {
     try {
-        let arr = []
+        let arr = [];
         for (let userID of ids) {
             let foundMemory = await Memory.find({ "_id": userID });
             arr.push(foundMemory[0]);
         }
-        console.log("Array=" + arr);
-        return arr
+        return arr;
     }
     catch (e) {
-        console.log(e)
+        console.log(e);
+        res.redirect("/memories/my-memories");
     }
 }
 app.get("/memories/my-memories", checkAuthenticated, async function (req, res) {
@@ -249,8 +242,6 @@ app.get("/memories/my-memories", checkAuthenticated, async function (req, res) {
     try {
         const foundUser = await User.findById(req.user.id);
         const memoryIds = foundUser.userMemory;
-        console.log("memoryIds");
-        console.log(memoryIds);
 
         if (memoryIds.length == 0) {
             headingText = "No Memories Saved";
@@ -261,59 +252,51 @@ app.get("/memories/my-memories", checkAuthenticated, async function (req, res) {
         res.render("memories", { userWithMemories: userMemories, headingMemo: headingText });
     }
     catch (e) {
-        console.log(e);
+        req.flash('error','Something went Wrong ! Please Try Again !');
+        res.redirect("/login");
     }
 });
 
-
-// app.get("/memories/my-memories", function (req, res) {
-//     let userMemories = [];
-//     let headingText = "";
-
-//     User.findById(req.user.id, function (err, foundUser) {
-//        
-//             const memoryIds = foundUser.userMemory;
-//             if (memoryIds.length == 0) {
-//                 headingText = "No Memories Saved :(";
-//                 //display no memory found, give create option 
-//             } else {
-//                 headingText = "My Memories";
-//                 memoryIds.forEach((memoId) => {
-//                     Memory.findById(memoId, function (err, result) {                  //loop
-//                         userMemories.push(result);
-//                     });
-//                 });
-//             }
-//         
-//     });
-//     res.render("memories", { userWithMemories: userMemories, headingMemo: headingText });
-// });
-
-
-app.post("/delete", async function (req, res) {
+app.post("/delete",checkAuthenticated, async function (req, res) {
     try {
         const deleteMemoId = req.body.deleteMemo;
-        console.log("deleteMemoId");
-        console.log(deleteMemoId);
         const UserDeleteMemory = await Memory.findByIdAndDelete(deleteMemoId);
-        console.log("UserDeleteMemory=");
-        console.log(UserDeleteMemory);
 
         User.findById(req.user.id, function (err, foundUser) {
             let id = foundUser.userMemory.indexOf(deleteMemoId);
-            console.log("id=" + id);
             const idDeleted = foundUser.userMemory.splice(id, 1);
-            console.log("id Deleted=" + idDeleted);
             foundUser.save();
             res.redirect("/memories/my-memories");
         });
 
     }
     catch (e) {
-        console.log(e);
+        req.flash('error','Something went Wrong ! Please Try Again !');
+        res.redirect("/login");
     }
 });
 
+app.get('/memories/search',checkAuthenticated,function(req,res){
+    res.redirect('/memories');
+})
+
+app.post("/memories/search",checkAuthenticated, async function (req, res) {
+    let searchedMemories = [];
+    let i = 0;
+    const allMemories = await Memory.find();
+    
+    allMemories.forEach((memo) => {
+        if (memo.title.toLowerCase().includes(req.body.searchData.toLowerCase())) {
+            searchedMemories.push(memo);
+            ++i;
+        }
+    })
+    let heading = "";
+    if (i == 0) {  heading = "No results Found"; }
+    else { heading = i + " Results found"; }
+
+    res.render("memories", { userWithMemories: searchedMemories, headingMemo: heading });
+});
 
 app.listen(3000, function () {
     console.log("Server started on port 3000");
