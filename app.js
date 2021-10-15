@@ -298,6 +298,6 @@ app.post("/memories/search",checkAuthenticated, async function (req, res) {
     res.render("memories", { userWithMemories: searchedMemories, headingMemo: heading });
 });
 
-app.listen(3000, function () {
+app.listen(process.env.PORT || 3000, function () {
     console.log("Server started on port 3000");
 });
