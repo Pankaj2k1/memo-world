@@ -1,4 +1,6 @@
-require('dotenv').config()
+if(process.env.NODE_ENV !=="production"){
+    require('dotenv').config();
+}
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
@@ -20,7 +22,7 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(session({
-    secret: process.env.SECRET,
+    secret: process.env.SECRET || 'hey there',
     resave: false,
     saveUninitialized: false
 }));
@@ -169,9 +171,9 @@ app.post("/submitmemo", upload.single('memo-image'),checkAuthenticated, function
         message: req.body.memory
     };
     let JoiSchema = joi.object({
-        creator: joi.string().min(3).max(20).required(),
+        creator: joi.string().min(3).max(30).required(),
         title: joi.string().min(4).max(40).required(),
-        message: joi.string().min(10).max(100).required()
+        message: joi.string().min(10).max(160).required()
     });
 
     let result = JoiSchema.validate(userMemo);
